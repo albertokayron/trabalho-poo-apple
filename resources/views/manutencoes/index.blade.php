@@ -1,91 +1,164 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="space-y-6">
-    
-    <!-- Cabeçalho -->
-    <div class="flex items-center justify-between">
-        <div>
-            <h1 class="text-3xl font-bold tracking-tight text-apple-black">Ordem de Manutenção</h1>
-            <p class="text-sm text-apple-gray mt-1">Gerencie a fila de suporte técnico e consertos de aparelhos da Apple.</p>
-        </div>
-        
-        <a href="{{ route('manutencoes.create') }}" class="inline-flex items-center px-4 py-2 text-xs font-semibold tracking-wider text-white bg-apple-black rounded-full hover:bg-black transition-all duration-200 shadow-sm hover:shadow-md">
-            + Registrar Manutenção
-        </a>
-    </div>
+    <div class="space-y-6 animate-slide-up">
 
-    <!-- Fila de Manutenções -->
-    <div class="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
-        <div class="overflow-x-auto">
-            <table class="min-w-full divide-y divide-gray-200 text-left">
-                <thead class="bg-gray-50 text-xs font-semibold tracking-wider text-apple-gray uppercase">
-                    <tr>
-                        <th class="px-6 py-4">ID</th>
-                        <th class="px-6 py-4">Aparelho</th>
-                        <th class="px-6 py-4">Técnico Responsável</th>
-                        <th class="px-6 py-4">Descrição do Defeito</th>
-                        <th class="px-6 py-4">Data de Entrada</th>
-                        <th class="px-6 py-4">Status</th>
-                        <th class="px-6 py-4 text-right">Ações</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-gray-100 text-sm">
-                    @forelse ($manutencoes as $manutencao)
-                        <tr class="hover:bg-gray-50/80 transition-colors">
-                            <td class="px-6 py-4 font-semibold text-apple-black">#{{ $manutencao->id }}</td>
-                            <td class="px-6 py-4">
-                                <div class="font-medium text-apple-black">{{ $manutencao->aparelho->modelo }}</div>
-                                <div class="text-xs text-apple-gray font-mono mt-0.5">S/N: {{ $manutencao->aparelho->numero_serie }}</div>
-                            </td>
-                            <td class="px-6 py-4">
-                                <div class="font-medium text-apple-black">{{ $manutencao->tecnico->name }}</div>
-                                <div class="text-xs text-apple-gray mt-0.5">{{ $manutencao->tecnico->cargo }}</div>
-                            </td>
-                            <td class="px-6 py-4 max-w-xs">
-                                <p class="text-apple-black truncate" title="{{ $manutencao->descricao_problema }}">
-                                    {{ $manutencao->descricao_problema }}
-                                </p>
-                            </td>
-                            <td class="px-6 py-4 text-apple-gray text-xs">
-                                {{ $manutencao->data_entrada->format('d/m/Y H:i') }}
-                            </td>
-                            <td class="px-6 py-4">
-                                @if ($manutencao->status === 'Pendente')
-                                    <span class="px-2.5 py-1 text-xs font-semibold text-amber-700 bg-amber-50 rounded-full border border-amber-100">Pendente</span>
-                                @elseif ($manutencao->status === 'Em Análise')
-                                    <span class="px-2.5 py-1 text-xs font-semibold text-sky-700 bg-sky-50 rounded-full border border-sky-100">Em Análise</span>
-                                @else
-                                    <span class="px-2.5 py-1 text-xs font-semibold text-emerald-700 bg-emerald-50 rounded-full border border-emerald-100">Concluído</span>
-                                @endif
-                            </td>
-                            <td class="px-6 py-4 text-right space-x-3 whitespace-nowrap">
-                                <!-- Botão Editar -->
-                                <a href="{{ route('manutencoes.edit', $manutencao->id) }}" class="text-xs font-semibold text-apple-blue hover:underline">
-                                    Editar
-                                </a>
-                                
-                                <!-- Formulário Excluir -->
-                                <form action="{{ route('manutencoes.destroy', $manutencao->id) }}" method="POST" class="inline" onsubmit="return confirm('Deseja realmente remover esta ordem de manutenção?');">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" class="text-xs font-semibold text-rose-600 hover:underline">
-                                        Excluir
-                                    </button>
-                                </form>
-                            </td>
-                        </tr>
-                    @empty
+        <!-- Cabeçalho -->
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div>
+                <h1 class="text-3xl font-extrabold tracking-tight text-apple-black dark:text-white">Ordem de Manutenção</h1>
+                <p class="text-sm text-apple-gray dark:text-gray-400 mt-1">Gerencie a fila de suporte técnico e consertos de aparelhos da Apple.</p>
+            </div>
+
+            <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+                <!-- Campo de Busca Dinâmico -->
+                <div class="relative w-full sm:w-64">
+                    <input type="text" id="maintenance-search" placeholder="Buscar por modelo, S/N, técnico..." class="w-full px-4 py-2 text-xs rounded-full border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-apple-black dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-apple-blue/55 focus:border-apple-blue transition-all" />
+                    <span class="absolute right-3.5 top-2.5 text-apple-gray dark:text-gray-500">
+                        <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                    </span>
+                </div>
+
+                <a href="{{ route('manutencoes.create') }}"
+                    class="inline-flex items-center justify-center px-5 py-2 text-xs font-bold tracking-wider text-white bg-apple-blue hover:bg-blue-600 rounded-full transition-all duration-300 shadow-sm hover:shadow-lg hover:-translate-y-0.5 whitespace-nowrap">
+                    <svg class="w-3.5 h-3.5 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
+                    Registrar Manutenção
+                </a>
+            </div>
+        </div>
+
+        <!-- Fila de Manutenções -->
+        <div class="bg-white dark:bg-zinc-900 rounded-3xl border border-gray-200/60 dark:border-zinc-800/80 shadow-sm overflow-hidden transition-colors duration-300">
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200 dark:divide-zinc-800 text-left">
+                    <thead class="bg-gray-50 dark:bg-zinc-900/50 text-[10px] font-bold tracking-widest text-apple-gray dark:text-gray-400 uppercase">
                         <tr>
-                            <td colspan="7" class="px-6 py-8 text-center text-apple-gray">
-                                <p class="text-sm font-medium">Nenhum registro de manutenção encontrado.</p>
+                            <th class="px-6 py-4">ID</th>
+                            <th class="px-6 py-4">Aparelho</th>
+                            <th class="px-6 py-4">Técnico Responsável</th>
+                            <th class="px-6 py-4">Descrição do Defeito</th>
+                            <th class="px-6 py-4">Data de Entrada</th>
+                            <th class="px-6 py-4">Status</th>
+                            <th class="px-6 py-4 text-right">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-100 dark:divide-zinc-800 text-sm" id="maintenance-tbody">
+                        @forelse ($manutencoes as $manutencao)
+                            <tr class="hover:bg-gray-50/50 dark:hover:bg-zinc-800/20 transition-colors maintenance-row" 
+                                data-searchable="{{ strtolower($manutencao->id . ' ' . $manutencao->aparelho->modelo . ' ' . $manutencao->aparelho->numero_serie . ' ' . $manutencao->tecnico->name . ' ' . $manutencao->descricao_problema) }}">
+                                <td class="px-6 py-4 font-bold text-apple-black dark:text-zinc-400">#{{ $manutencao->id }}</td>
+                                <td class="px-6 py-4">
+                                    <div class="font-bold text-apple-black dark:text-white">{{ $manutencao->aparelho->modelo }}</div>
+                                    <div class="text-[10px] text-apple-gray dark:text-gray-400 font-mono mt-0.5">S/N: {{ $manutencao->aparelho->numero_serie }}</div>
+                                </td>
+                                <td class="px-6 py-4">
+                                    <div class="font-semibold text-apple-black dark:text-white">{{ $manutencao->tecnico->name }}</div>
+                                    <div class="text-[10px] text-apple-gray dark:text-gray-400 mt-0.5">{{ $manutencao->tecnico->cargo }}</div>
+                                </td>
+                                <td class="px-6 py-4 max-w-xs">
+                                    <p class="text-apple-black dark:text-gray-300 truncate text-xs" title="{{ $manutencao->descricao_problema }}">
+                                        {{ $manutencao->descricao_problema }}
+                                    </p>
+                                </td>
+                                <td class="px-6 py-4 text-apple-gray dark:text-gray-400 text-xs">
+                                    {{ $manutencao->data_entrada->format('d/m/Y H:i') }}
+                                </td>
+                                <td class="px-6 py-4">
+                                    @if ($manutencao->status === 'Pendente')
+                                        <span class="px-3 py-1 text-xs font-semibold text-amber-700 bg-amber-50 dark:text-amber-400 dark:bg-amber-950/20 rounded-full border border-amber-100 dark:border-amber-900/30 inline-flex items-center">
+                                            <span class="relative flex h-1.5 w-1.5 mr-1.5">
+                                                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                                                <span class="relative inline-flex rounded-full h-1.5 w-1.5 bg-amber-500"></span>
+                                            </span>
+                                            Pendente
+                                        </span>
+                                    @elseif ($manutencao->status === 'Em Análise')
+                                        <span class="px-3 py-1 text-xs font-semibold text-sky-700 bg-sky-50 dark:text-sky-400 dark:bg-sky-950/20 rounded-full border border-sky-100 dark:border-sky-900/30 inline-flex items-center">
+                                            <span class="relative flex h-1.5 w-1.5 mr-1.5">
+                                                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-sky-400 opacity-75"></span>
+                                                <span class="relative inline-flex rounded-full h-1.5 w-1.5 bg-sky-500"></span>
+                                            </span>
+                                            Em Análise
+                                        </span>
+                                    @else
+                                        <span class="px-3 py-1 text-xs font-semibold text-emerald-700 bg-emerald-50 dark:text-emerald-400 dark:bg-emerald-950/20 rounded-full border border-emerald-100 dark:border-emerald-900/30 inline-flex items-center">
+                                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 mr-1.5"></span>
+                                            Concluído
+                                        </span>
+                                    @endif
+                                </td>
+                                <td class="px-6 py-4 text-right space-x-3 whitespace-nowrap">
+                                    <!-- Botão Editar -->
+                                    <a href="{{ route('manutencoes.edit', $manutencao->id) }}"
+                                        class="inline-flex items-center px-3 py-1 text-xs font-bold text-apple-blue dark:text-blue-400 bg-blue-50 dark:bg-blue-950/20 hover:bg-apple-blue hover:text-white dark:hover:bg-apple-blue dark:hover:text-white rounded-full transition-all duration-200">
+                                        Editar
+                                    </a>
+ 
+                                    <!-- Formulário Excluir -->
+                                    <form action="{{ route('manutencoes.destroy', $manutencao->id) }}" method="POST"
+                                        class="inline"
+                                        onsubmit="return confirm('Deseja realmente remover esta ordem de manutenção?');">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="inline-flex items-center px-3 py-1 text-xs font-bold text-rose-600 bg-rose-50 dark:text-rose-400 dark:bg-rose-950/20 hover:bg-rose-600 hover:text-white dark:hover:bg-rose-600 dark:hover:text-white rounded-full transition-all duration-200">
+                                            Excluir
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                        @empty
+                            <tr id="empty-row">
+                                <td colspan="7" class="px-6 py-12 text-center text-apple-gray dark:text-gray-500">
+                                    <svg class="mx-auto h-10 w-10 text-gray-300 dark:text-zinc-700 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                                    </svg>
+                                    <p class="text-sm font-semibold">Nenhuma ordem de manutenção registrada.</p>
+                                </td>
+                            </tr>
+                        @endforelse
+                        
+                        <!-- Linha exibida quando a busca não retorna resultados -->
+                        <tr id="no-results-row" class="hidden">
+                            <td colspan="7" class="px-6 py-12 text-center text-apple-gray dark:text-gray-500">
+                                <svg class="mx-auto h-10 w-10 text-gray-300 dark:text-zinc-700 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                </svg>
+                                <p class="text-sm font-semibold">Nenhum resultado corresponde à sua busca.</p>
                             </td>
                         </tr>
-                    @endforelse
-                </tbody>
-            </table>
+                    </tbody>
+                </table>
+            </div>
         </div>
+
     </div>
 
-</div>
+    <!-- Script de Filtro Instantâneo -->
+    <script>
+        document.getElementById('maintenance-search').addEventListener('input', function(e) {
+            let query = e.target.value.toLowerCase().trim();
+            let rows = document.querySelectorAll('.maintenance-row');
+            let noResultsRow = document.getElementById('no-results-row');
+            let emptyRow = document.getElementById('empty-row');
+            let visibleCount = 0;
+
+            rows.forEach(function(row) {
+                let searchable = row.getAttribute('data-searchable');
+                if (searchable.includes(query)) {
+                    row.style.display = '';
+                    visibleCount++;
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+
+            if (rows.length > 0) {
+                if (visibleCount === 0) {
+                    noResultsRow.classList.remove('hidden');
+                } else {
+                    noResultsRow.classList.add('hidden');
+                }
+            }
+        });
+    </script>
 @endsection
