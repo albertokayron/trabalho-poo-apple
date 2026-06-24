@@ -13,12 +13,10 @@ class DatabaseSeeder extends Seeder
 {
     use WithoutModelEvents;
 
-    /**
-     * Seed the application's database.
-     */
+    
     public function run(): void
     {
-        // 1. Cadastrando Funcionários (Usuários) da Apple
+        
         $steve = User::create([
             'name' => 'Steve Jobs',
             'email' => 'steve@apple.com',
@@ -47,7 +45,7 @@ class DatabaseSeeder extends Seeder
             'password' => Hash::make('password123'),
         ]);
 
-        // 2. Cadastrando Aparelhos (Produtos Apple)
+        
         $iphone = Aparelho::create([
             'modelo' => 'iPhone 15 Pro Max (256GB)',
             'tipo' => 'iPhone',
@@ -76,7 +74,7 @@ class DatabaseSeeder extends Seeder
             'status' => 'Em Manutenção',
         ]);
 
-        // 3. Cadastrando Registros de Manutenções
+        
         Manutencao::create([
             'aparelho_id' => $macbook->id,
             'usuario_id' => $genius->id,

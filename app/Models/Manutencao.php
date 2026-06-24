@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Manutencao extends Model
 {
-    // Especifica o nome correto da tabela no banco de dados (o Laravel por padrão buscaria 'manutencaos')
+    
     protected $table = 'manutencoes';
 
     protected $fillable = [
@@ -21,17 +21,13 @@ class Manutencao extends Model
         'data_entrada' => 'datetime',
     ];
 
-    /**
-     * Relacionamento: a manutenção pertence a um aparelho.
-     */
+    
     public function aparelho()
     {
         return $this->belongsTo(Aparelho::class, 'aparelho_id');
     }
 
-    /**
-     * Relacionamento: a manutenção pertence a um técnico/funcionário (usuário).
-     */
+    
     public function tecnico()
     {
         return $this->belongsTo(User::class, 'usuario_id');

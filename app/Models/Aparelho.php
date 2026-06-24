@@ -13,9 +13,7 @@ class Aparelho extends Model
         'status',
     ];
 
-    /**
-     * Relacionamento com as manutenções deste aparelho.
-     */
+    
     public function manutencoes()
     {
         return $this->hasMany(Manutencao::class, 'aparelho_id');
